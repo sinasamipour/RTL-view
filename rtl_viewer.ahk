@@ -52,10 +52,11 @@ TrayTip("نمایشگر راست‌چین فعال شد", "از کلیدهای C
     if (selectedText == "" && Trim(htmlFragment) == "")
         return
 
-    ; ایجاد مسیر پوشه assets در صورت عدم وجود
-    assetsDir := A_ScriptDir "\assets"
-    if !DirExist(assetsDir) {
-        DirCreate(assetsDir)
+    ; پوشه‌ی داده‌ی قابل‌نوشتن کاربر (%LOCALAPPDATA%\RTLView)
+    ; در حالت نصبی، خود برنامه در Program Files (فقط‌خواندنی) است؛ پس فایل موقت اینجا نوشته می‌شود
+    dataDir := GetDataDir()
+    if !DirExist(dataDir) {
+        DirCreate(dataDir)
     }
 
     ; تعیین حالت و محتوای ارسالی: اگر HTML در دسترس بود از آن استفاده کن، وگرنه متن ساده
@@ -68,25 +69,37 @@ TrayTip("نمایشگر راست‌چین فعال شد", "از کلیدهای C
 
     ; نوشتن محتوا در یک فایل موقت یکتا برای انتقال امن به پایتون
     ; نام یکتا (تیک سیستم) از تداخل و Race Condition هنگام فشردن سریع کلید جلوگیری می‌کند
-    tempFile := assetsDir "\temp_text_" A_TickCount ".txt"
+    tempFile := dataDir "\temp_text_" A_TickCount ".txt"
     if FileExist(tempFile) {
         FileDelete(tempFile)
     }
     ; UTF-8-RAW یعنی بدون BOM؛ تا خط اول (MODE=...) دقیقاً قابل تطبیق در پایتون باشد
     FileAppend(payload, tempFile, "UTF-8-RAW")
 
-    ; پیدا کردن مسیر مطلق pythonw.exe از روی PATH (بدون جست‌وجوی پوشه‌ی کاری)
-    ; این کار از حمله‌ی PATH/Binary Hijacking با کاشتن pythonw.exe مخرب در پوشه‌ی پروژه جلوگیری می‌کند
-    pythonExe := FindPythonExe()
-    if (pythonExe == "") {
-        FileDelete(tempFile)
-        MsgBox("pythonw.exe یافت نشد. لطفاً مطمئن شوید Python نصب و در PATH موجود است.", "خطا", "Iconx")
-        return
+    ; اجرای نمایشگر گرافیکی و ارسال مسیر فایل موقت به‌عنوان آرگومان
+    ; حالت نصبی: gui.exe کنار برنامه قرار دارد؛ حالت توسعه: با pythonw اجرای gui.py
+    guiExe := A_ScriptDir "\gui.exe"
+    if FileExist(guiExe) {
+        Run('"' guiExe '" "' tempFile '"')
+    } else {
+        ; پیدا کردن مسیر مطلق pythonw.exe از روی PATH (بدون جست‌وجوی پوشه‌ی کاری)
+        ; این کار از حمله‌ی PATH/Binary Hijacking با کاشتن pythonw.exe مخرب جلوگیری می‌کند
+        pythonExe := FindPythonExe()
+        if (pythonExe == "") {
+            FileDelete(tempFile)
+            MsgBox("gui.exe یا pythonw.exe یافت نشد. لطفاً برنامه را به‌درستی نصب کنید یا Python را نصب کنید.", "خطا", "Iconx")
+            return
+        }
+        Run('"' pythonExe '" "' A_ScriptDir '\gui.py" "' tempFile '"')
     }
+}
 
-    ; اجرای برنامه گرافیکی پایتون در پس‌زمینه و ارسال مسیر فایل موقت به‌عنوان آرگومان
-    guiScript := A_ScriptDir "\gui.py"
-    Run('"' pythonExe '" "' guiScript '" "' tempFile '"')
+; مسیر پوشه‌ی داده‌ی قابل‌نوشتن کاربر؛ در صورت نبود LOCALAPPDATA به پوشه‌ی موقت برمی‌گردد
+GetDataDir() {
+    base := EnvGet("LOCALAPPDATA")
+    if (base == "")
+        base := EnvGet("TEMP")
+    return base "\RTLView"
 }
 
 ; جست‌وجوی pythonw.exe فقط در مسیرهای معتبر PATH و بازگرداندن مسیر مطلق (پوشه‌ی کاری نادیده گرفته می‌شود)

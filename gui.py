@@ -171,8 +171,21 @@ def render_content(raw_text):
 
     return '\n'.join(parts)
 
+# مسیر منابع همراه برنامه؛ هم در حالت توسعه و هم در حالت بسته‌بندی‌شده (PyInstaller) کار می‌کند
+def resource_path(rel_path):
+    # در حالت فریزشده، PyInstaller منابع را در sys._MEIPASS قرار می‌دهد
+    base = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base, rel_path)
+
+
+# پوشه‌ی داده‌ی قابل‌نوشتن کاربر (هماهنگ با اسکریپت AHK): %LOCALAPPDATA%\RTLView
+def user_data_dir():
+    base = os.environ.get("LOCALAPPDATA") or os.environ.get("TEMP") or os.path.dirname(os.path.abspath(__file__))
+    return os.path.join(base, "RTLView")
+
+
 # ۱. بارگذاری فونت اختصاصی وزیر و تبدیل آن به Base64 جهت لود بدون مشکل در WebView
-font_path = os.path.join(os.path.dirname(__file__), "assets", "Vazirmatn-Medium.ttf")
+font_path = resource_path(os.path.join("assets", "Vazirmatn-Medium.ttf"))
 font_loaded = False
 font_base64 = ""
 
@@ -189,18 +202,18 @@ if os.path.exists(font_path):
 
 # ۲. تعیین مسیر فایل موقت کپی‌شده
 # مسیر از آرگومان خط فرمان گرفته می‌شود (نام یکتا از سمت AHK) و در صورت نبود، به مسیر پیش‌فرض برمی‌گردد
-assets_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), "assets"))
+data_dir = os.path.realpath(user_data_dir())
 if len(sys.argv) > 1:
     temp_file = os.path.realpath(sys.argv[1])
 else:
-    temp_file = os.path.join(assets_dir, "temp_text.txt")
+    temp_file = os.path.join(data_dir, "temp_text.txt")
 
-# اعتبارسنجی مسیر: فایل موقت باید حتماً داخل پوشه‌ی assets باشد
+# اعتبارسنجی مسیر: فایل موقت باید حتماً داخل پوشه‌ی داده‌ی کاربر باشد
 # (جلوگیری از خواندن فایل دلخواه سیستم در صورت دستکاری آرگومان ورودی)
 MAX_TEXT_LEN = 20000     # سقف طول متن قابل‌نمایش
 MAX_RAW_LEN = 200000     # سقف خواندن خام (HTML با تگ‌ها حجیم‌تر است)
 raw_payload = ""
-if os.path.commonpath([assets_dir, temp_file]) == assets_dir and os.path.exists(temp_file):
+if os.path.isdir(data_dir) and os.path.commonpath([data_dir, temp_file]) == data_dir and os.path.exists(temp_file):
     try:
         # utf-8-sig یک BOM احتمالی در ابتدای فایل را خودکار حذف می‌کند
         with open(temp_file, "r", encoding="utf-8-sig") as f:

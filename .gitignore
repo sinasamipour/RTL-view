@@ -16,6 +16,13 @@ assets/temp_text_*.txt
 font_log.txt
 output.txt
 
+# Build artifacts (PyInstaller / Ahk2Exe / Inno Setup)
+build/
+dist/
+Output/
+*.exe
+*.spec.bak
+
 # OS metadata
 Thumbs.db
 ehthumbs.db
