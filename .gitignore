@@ -23,6 +23,10 @@ Output/
 *.exe
 *.spec.bak
 
+# Generated icon previews (icon.ico itself is kept)
+assets/icon_preview.png
+assets/_*.png
+
 # OS metadata
 Thumbs.db
 ehthumbs.db

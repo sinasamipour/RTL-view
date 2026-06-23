@@ -1,6 +1,15 @@
 #Requires AutoHotkey v2.0
 #SingleInstance Force
 
+; تنظیم آیکون اختصاصی برنامه در System Tray
+; حالت نصبی: icon.ico کنار اسکریپت؛ حالت توسعه: در پوشه‌ی assets
+for iconPath in [A_ScriptDir "\icon.ico", A_ScriptDir "\assets\icon.ico"] {
+    if FileExist(iconPath) {
+        TraySetIcon(iconPath)
+        break
+    }
+}
+
 ; منوی سفارشی در System Tray (گوشه ویندوز)
 A_IconTip := "نمایشگر راست‌چین"
 Tray := A_TrayMenu

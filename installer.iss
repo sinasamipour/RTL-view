@@ -31,6 +31,9 @@ OutputBaseFilename=RTLView-Setup
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
+; آیکون خود فایل نصب‌کننده
+SetupIconFile=assets\icon.ico
+UninstallDisplayIcon={app}\icon.ico
 
 [Languages]
 Name: "en"; MessagesFile: "compiler:Default.isl"
@@ -44,12 +47,14 @@ Source: "dist\gui\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs i
 ; مفسر AutoHotkey و اسکریپت hotkey
 Source: "RTLViewDaemon.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#Script}"; DestDir: "{app}"; Flags: ignoreversion
+; آیکون برای شورتکات‌ها و آیکون tray (در زمان اجرا توسط اسکریپت خوانده می‌شود)
+Source: "assets\icon.ico"; DestDir: "{app}"; Flags: ignoreversion
 ; برای نصب‌کننده‌ی کاملاً خودکفا، بوت‌استرپر WebView2 را کنار این فایل بگذارید و خط زیر را فعال کنید:
 ; Source: "MicrosoftEdgeWebView2Setup.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
 
 [Icons]
-; شورتکات‌ها مفسر را با اسکریپت به‌عنوان پارامتر اجرا می‌کنند
-Name: "{group}\{#AppName}"; Filename: "{app}\{#Daemon}"; Parameters: """{app}\{#Script}"""; WorkingDir: "{app}"
+; شورتکات‌ها مفسر را با اسکریپت به‌عنوان پارامتر اجرا می‌کنند (با آیکون اختصاصی)
+Name: "{group}\{#AppName}"; Filename: "{app}\{#Daemon}"; Parameters: """{app}\{#Script}"""; WorkingDir: "{app}"; IconFilename: "{app}\icon.ico"
 Name: "{group}\حذف {#AppName}"; Filename: "{uninstallexe}"
 
 [Registry]

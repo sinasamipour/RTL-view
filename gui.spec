@@ -9,8 +9,8 @@ a = Analysis(
     ['gui.py'],
     pathex=[],
     binaries=[],
-    # فونت وزیر همراه برنامه بسته‌بندی می‌شود و در زمان اجرا از کنار exe خوانده می‌شود
-    datas=[('assets/Vazirmatn-Medium.ttf', 'assets')],
+    # فونت وزیر و آیکون همراه برنامه بسته‌بندی می‌شوند و در زمان اجرا از کنار exe خوانده می‌شوند
+    datas=[('assets/Vazirmatn-Medium.ttf', 'assets'), ('assets/icon.ico', 'assets')],
     hiddenimports=['nh3'],
     hookspath=[],
     runtime_hooks=[],
@@ -37,6 +37,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon='assets/icon.ico',
 )
 
 coll = COLLECT(
