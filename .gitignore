@@ -12,6 +12,7 @@ env/
 
 # AutoHotkey & Script Temporary Files
 assets/temp_text.txt
+assets/temp_text_*.txt
 font_log.txt
 output.txt
 

@@ -54,14 +54,38 @@ TrayTip("نمایشگر راست‌چین فعال شد", "از کلیدهای C
         DirCreate(assetsDir)
     }
     
-    ; نوشتن متن کپی شده در یک فایل موقت برای انتقال امن به پایتون
-    tempFile := assetsDir "\temp_text.txt"
+    ; نوشتن متن کپی شده در یک فایل موقت یکتا برای انتقال امن به پایتون
+    ; نام یکتا (تیک سیستم) از تداخل و Race Condition هنگام فشردن سریع کلید جلوگیری می‌کند
+    tempFile := assetsDir "\temp_text_" A_TickCount ".txt"
     if FileExist(tempFile) {
         FileDelete(tempFile)
     }
     FileAppend(selectedText, tempFile, "UTF-8")
-    
-    ; اجرای برنامه گرافیکی پایتون در پس‌زمینه بدون نمایش پنجره ترمینال (با استفاده از pythonw.exe)
+
+    ; پیدا کردن مسیر مطلق pythonw.exe از روی PATH (بدون جست‌وجوی پوشه‌ی کاری)
+    ; این کار از حمله‌ی PATH/Binary Hijacking با کاشتن pythonw.exe مخرب در پوشه‌ی پروژه جلوگیری می‌کند
+    pythonExe := FindPythonExe()
+    if (pythonExe == "") {
+        FileDelete(tempFile)
+        MsgBox("pythonw.exe یافت نشد. لطفاً مطمئن شوید Python نصب و در PATH موجود است.", "خطا", "Iconx")
+        return
+    }
+
+    ; اجرای برنامه گرافیکی پایتون در پس‌زمینه و ارسال مسیر فایل موقت به‌عنوان آرگومان
     guiScript := A_ScriptDir "\gui.py"
-    Run('pythonw.exe "' guiScript '"')
+    Run('"' pythonExe '" "' guiScript '" "' tempFile '"')
+}
+
+; جست‌وجوی pythonw.exe فقط در مسیرهای معتبر PATH و بازگرداندن مسیر مطلق (پوشه‌ی کاری نادیده گرفته می‌شود)
+FindPythonExe() {
+    pathEnv := EnvGet("PATH")
+    Loop Parse, pathEnv, ";" {
+        dir := Trim(A_LoopField)
+        if (dir == "")
+            continue
+        candidate := dir "\pythonw.exe"
+        if FileExist(candidate)
+            return candidate
+    }
+    return ""
 }
