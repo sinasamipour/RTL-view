@@ -1,4 +1,4 @@
-# RTL Window 📐✨
+# RTL View 📐✨
 
 A lightweight, modern Windows desktop utility that instantly displays any selected text in a beautiful, right-to-left (RTL) formatted popup. 
 
@@ -6,7 +6,7 @@ This tool is designed to solve the annoying problem of reading Persian (Farsi), 
 
 ---
 
-### [فارسی] راهنمای ابزار RTL Window
+### [فارسی] راهنمای ابزار RTL View
 
 یک ابزار کمکی سبک و مدرن برای ویندوز که به شما امکان می‌دهد هر متن انتخاب‌شده در برنامه‌های مختلف را با فشردن یک کلید میانبر، در قالب یک پنجره‌ی پاپ‌آپ زیبا و کاملاً راست‌چین (RTL) مشاهده کنید. این ابزار به ویژه برای خواندن صحیح متون فارسی/عربی که در برخی برنامه‌ها (مانند ترمینال‌ها، پیام‌رسان‌ها یا ویرایشگرهای کد) چپ‌چین شده و خوانش آن‌ها سخت است، طراحی شده است.
 
@@ -27,7 +27,7 @@ This tool is designed to solve the annoying problem of reading Persian (Farsi), 
 ## 📦 Project Structure | ساختار پروژه
 
 ```text
-RTL-window/
+RTL-view/
 │
 ├── assets/
 │   ├── Vazirmatn-Medium.ttf     # Vazirmatn font file (loaded dynamically)
