@@ -18,8 +18,10 @@ These are needed **only on your machine to build** — the end user needs none o
    ```bash
    pip install pywebview nh3 pyinstaller
    ```
-2. **AutoHotkey v2 + its Ahk2Exe compiler**
-   (during AutoHotkey setup, make sure the *Compiler* component is installed; or grab it from [autohotkey.com](https://www.autohotkey.com/)).
+2. **AutoHotkey v2** ([autohotkey.com](https://www.autohotkey.com/)) — only its interpreter
+   `AutoHotkey64.exe` is needed. We do **not** compile the script with Ahk2Exe (that compiler
+   and the exes it produces are frequently false-flagged by antivirus). Instead the official
+   interpreter is bundled alongside the script, which is far less likely to be flagged.
 3. **Inno Setup 6** (free) — [jrsoftware.org/isinfo.php](https://jrsoftware.org/isinfo.php).
 
 ---
@@ -34,9 +36,10 @@ powershell -ExecutionPolicy Bypass -File build.ps1
 
 This produces:
 - `dist\gui\gui.exe` — the popup renderer (Python bundled inside, onedir for fast startup).
-- `rtl_viewer.exe` — the background hotkey daemon (AutoHotkey runtime bundled inside).
+- `RTLViewDaemon.exe` — a copy of the official AutoHotkey interpreter (renamed so the running
+  process is identifiable). It runs `rtl_viewer.ahk`, which is shipped alongside it.
 
-> If `build.ps1` can't find `Ahk2Exe.exe`, install the AutoHotkey Compiler component and re-run.
+> If `build.ps1` can't find `AutoHotkey64.exe`, install AutoHotkey v2 and re-run.
 
 ---
 
@@ -78,7 +81,8 @@ The app still runs in **development mode** with no compilation:
 
 ```
 C:\Users\<user>\AppData\Local\Programs\RTL View\
-   ├── rtl_viewer.exe      ← tray daemon (launched at startup if chosen)
+   ├── RTLViewDaemon.exe   ← AutoHotkey interpreter (launched at startup if chosen)
+   ├── rtl_viewer.ahk      ← the hotkey script it runs
    ├── gui.exe             ← popup renderer
    └── _internal\          ← bundled Python libs + assets\Vazirmatn-Medium.ttf
 
