@@ -54,8 +54,10 @@ To run this utility, you need to have the following installed on your Windows ma
 2. **Python 3.x** (Download from [python.org](https://www.python.org/))
 3. Python dependencies:
    ```bash
-   pip install pywebview
+   pip install pywebview nh3
    ```
+   - `pywebview` — WebView2 rendering engine.
+   - `nh3` — HTML sanitizer used to safely render rich clipboard content (lists/tables). If it is not installed, a built-in fallback sanitizer is used and rich HTML still renders safely, but `nh3` is strongly recommended.
 
 ---
 

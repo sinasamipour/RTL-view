@@ -38,29 +38,42 @@ TrayTip("نمایشگر راست‌چین فعال شد", "از کلیدهای C
     }
     
     selectedText := A_Clipboard
-    
+
+    ; خواندن نسخه‌ی HTML کلیپ‌بورد (قبل از بازگرداندن کلیپ‌بورد کاربر)
+    ; این نسخه ساختار لیست‌ها و جدول‌ها را حفظ می‌کند، برخلاف متن ساده
+    htmlFragment := GetClipboardHTMLFragment()
+
     ; بازگرداندن کلیپ‌بورد اصلی کاربر با کمی تاخیر برای پایداری بیشتر
     Sleep(50)
     A_Clipboard := clipSaved
-    
+
     ; تمیز کردن فضاهای خالی ابتدا و انتهای متن
     selectedText := Trim(selectedText)
-    if (selectedText == "")
+    if (selectedText == "" && Trim(htmlFragment) == "")
         return
-        
+
     ; ایجاد مسیر پوشه assets در صورت عدم وجود
     assetsDir := A_ScriptDir "\assets"
     if !DirExist(assetsDir) {
         DirCreate(assetsDir)
     }
-    
-    ; نوشتن متن کپی شده در یک فایل موقت یکتا برای انتقال امن به پایتون
+
+    ; تعیین حالت و محتوای ارسالی: اگر HTML در دسترس بود از آن استفاده کن، وگرنه متن ساده
+    ; خط اول فایل، حالت را مشخص می‌کند (MODE=HTML یا MODE=TEXT) و بقیه محتواست
+    if (Trim(htmlFragment) != "") {
+        payload := "MODE=HTML`n" htmlFragment
+    } else {
+        payload := "MODE=TEXT`n" selectedText
+    }
+
+    ; نوشتن محتوا در یک فایل موقت یکتا برای انتقال امن به پایتون
     ; نام یکتا (تیک سیستم) از تداخل و Race Condition هنگام فشردن سریع کلید جلوگیری می‌کند
     tempFile := assetsDir "\temp_text_" A_TickCount ".txt"
     if FileExist(tempFile) {
         FileDelete(tempFile)
     }
-    FileAppend(selectedText, tempFile, "UTF-8")
+    ; UTF-8-RAW یعنی بدون BOM؛ تا خط اول (MODE=...) دقیقاً قابل تطبیق در پایتون باشد
+    FileAppend(payload, tempFile, "UTF-8-RAW")
 
     ; پیدا کردن مسیر مطلق pythonw.exe از روی PATH (بدون جست‌وجوی پوشه‌ی کاری)
     ; این کار از حمله‌ی PATH/Binary Hijacking با کاشتن pythonw.exe مخرب در پوشه‌ی پروژه جلوگیری می‌کند
@@ -87,5 +100,50 @@ FindPythonExe() {
         if FileExist(candidate)
             return candidate
     }
+    return ""
+}
+
+; خواندن قطعه‌ی HTML از کلیپ‌بورد (فرمت "HTML Format" ویندوز) و استخراج بخش Fragment
+; در صورت نبودِ نسخه‌ی HTML، رشته‌ی خالی برمی‌گرداند تا به متن ساده برگردیم
+GetClipboardHTMLFragment() {
+    static CF_HTML := DllCall("RegisterClipboardFormat", "Str", "HTML Format", "UInt")
+
+    if !DllCall("IsClipboardFormatAvailable", "UInt", CF_HTML)
+        return ""
+
+    if !DllCall("OpenClipboard", "Ptr", 0)
+        return ""
+
+    raw := ""
+    try {
+        hData := DllCall("GetClipboardData", "UInt", CF_HTML, "Ptr")
+        if (hData) {
+            pData := DllCall("GlobalLock", "Ptr", hData, "Ptr")
+            if (pData) {
+                ; داده‌ی CF_HTML با انکودینگ UTF-8 و خاتمه‌یافته با NULL است
+                raw := StrGet(pData, "UTF-8")
+                DllCall("GlobalUnlock", "Ptr", hData)
+            }
+        }
+    }
+    DllCall("CloseClipboard")
+
+    if (raw == "")
+        return ""
+
+    ; استخراج محتوای بین نشانگرهای StartFragment و EndFragment
+    startTag := "<!--StartFragment-->"
+    endTag := "<!--EndFragment-->"
+    s := InStr(raw, startTag)
+    e := InStr(raw, endTag)
+    if (s && e && e > s) {
+        s += StrLen(startTag)
+        return SubStr(raw, s, e - s)
+    }
+
+    ; اگر نشانگرها نبودند، کل بدنه‌ی بعد از هدر را برگردان (هدر با یک خط خالی از بدنه جدا می‌شود)
+    bodyStart := InStr(raw, "<html")
+    if (bodyStart)
+        return SubStr(raw, bodyStart)
     return ""
 }
